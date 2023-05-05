@@ -87,29 +87,30 @@ def main():
     style = ttk.Style()
     style.configure("custom.TButton", font=font)
 
-    if args.list_gui:
+    if args.name_gui:
+        label = ttk.Label(None, text=get_name(active_space), font=font)
+        label.pack()
+        text_entry = ttk.Entry(None, text='', font=font)
+        text_entry.focus_set()
+        text_entry.bind("<Return>", lambda x: get_input_name(text_entry))
+        text_entry.pack()
+        center_window(win)
+    if args.list_gui or args.name_gui:
         names = [get_name(space) for space in spaces]
         for i, (n,s) in enumerate(zip(names, spaces)):
             idx = s['index']
             def f(idx=idx):
                 cmd = f'yabai -m space --focus {idx}'
                 os.system(cmd)
+                if text_entry.get() != '':
+                    get_input_name(text_entry)
+                exit(0)
             if idx < 10:
                 n = ' ' * (floor(log(len(spaces), 10)) - floor(log(idx, 10))) + n
             label = ttk.Button(win, text=n.ljust(12), command=f, style="custom.TButton")
             label.pack(anchor='w')
-        if not args.no_timeout:
+        if not args.no_timeout and not args.name_gui:
             win.after(600, exit)
-        center_window(win)
-        win.mainloop()
-    elif args.name_gui:
-        label = ttk.Label(None, text=get_name(active_space), font=font)
-        label.pack()
-        text_entry = ttk.Entry(None, text='', font=font)
-        text_entry.focus_set()
-        text_entry.bind("<Return>", lambda x: get_input_name(text_entry))
-        text_entry.bind("<KeyPress>", do_nothing)
-        text_entry.pack()
         center_window(win)
         win.mainloop()
     elif args.close_all:
