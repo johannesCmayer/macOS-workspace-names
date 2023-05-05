@@ -1,0 +1,3 @@
+- [ ] Close permanent show of list of workspaces with same keyboard shortcut (hyper-option)
+- [ ] Have it as a server to make startup time fast
+- [ ] Use a different GUI library where I can make it that the symbol is not stealing the focus

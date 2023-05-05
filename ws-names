@@ -1,0 +1,83 @@
+#!/usr/bin/env python3
+
+from subprocess import check_output
+from pathlib import Path
+import json
+import argparse
+import time
+import tkinter
+from tkinter import ttk
+
+gui_time = 600
+
+parser = argparse.ArgumentParser(description="Set workspace names")
+parser.add_argument("--name-gui", action='store_true', help="Workspace name")
+parser.add_argument("--name-cli", type=str, help="Workspace name")
+parser.add_argument("--list-gui", action="store_true", help="List workspace names")
+parser.add_argument("--no-timeout", action="store_true", help="Don't timeout")
+args = parser.parse_args()
+
+project_dir = Path(__file__).parent.absolute()
+ws_names_path = project_dir / "ws-names.json"
+if not ws_names_path.exists():
+    json.dump({}, ws_names_path.open("w"))
+ws_names = json.load(ws_names_path.open())
+
+spaces = check_output(["yabai", "-m", "query", "--spaces"]).decode("utf-8")
+active_space = check_output(["yabai", "-m", "query", "--spaces", "--space"]).decode("utf-8")
+spaces = json.loads(spaces)
+active_space = json.loads(active_space)
+
+def get_name(space):
+    uuid = space['uuid']
+    if uuid in ws_names:
+        name = ws_names[uuid]
+        if name == "":
+            r = f"{space['index']}"
+        else:
+            r = f"{space['index']}: {name}"
+    else:
+        r = f"{space['index']}"
+    if uuid == active_space['uuid']:
+        r = f"* {r}"
+    else:
+        r = f"  {r}"
+    return r
+
+def get_input_name(text_entry):
+    ws_names[active_space['uuid']] = text_entry.get()
+    json.dump(ws_names, ws_names_path.open("w"), indent=4, sort_keys=True)
+    exit()
+
+def main():
+    win = tkinter.Tk()
+    win.overrideredirect(1)
+    win.wm_attributes('-type', 'tooltip')
+    win.attributes('-topmost', True)
+    w, h, ww, wh = (
+        win.winfo_screenwidth(), 
+        win.winfo_screenheight(), 
+        win.winfo_width(),
+        win.winfo_height())
+    win.geometry(f"+{int(w/2-ww/2)}+{int(h/2-wh/2)}")
+
+    if args.list_gui:
+        names = "\n\n".join([get_name(space) for space in spaces])
+        label = ttk.Label(None, text=names, font=("Helvetica", 20))
+        label.pack()
+        if not args.no_timeout:
+            label.after(600, exit)
+        win.mainloop()
+    elif args.name_gui:
+        label = ttk.Label(None, text=get_name(active_space), font=("Helvetica", 20))
+        label.pack()
+        text_entry = ttk.Entry(None, text='', font=("Helvetica", 20))
+        text_entry.focus_set()
+        text_entry.bind("<Return>", lambda x: get_input_name(text_entry))
+        text_entry.pack()
+        win.mainloop()
+    else:
+        raise Exception("No argument specified")
+
+if __name__ == "__main__":
+    main()
