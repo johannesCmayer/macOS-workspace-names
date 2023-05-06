@@ -61,14 +61,7 @@ funs = []
 for i in range(100):
     funs.append(lambda: os.system(f'yabai -m space --focus {i}'))
 
-def main():
-    pids = []
-    if pid_path.exists():
-        pids = json.load(pid_path.open())
-    with pid_path.open("w") as f:
-        pids.append(os.getpid())
-        json.dump(pids, f)
-
+def gui():
     win = tkinter.Tk()
     win.overrideredirect(1)
     win.wm_attributes('-type', 'tooltip')
@@ -113,7 +106,9 @@ def main():
             win.after(600, exit)
         center_window(win)
         win.mainloop()
-    elif args.close_all:
+
+def cli(pids):
+    if args.close_all:
         for p in pids:
             if p != os.getpid():
                 try:
@@ -123,8 +118,19 @@ def main():
         pids = []
         with pid_path.open("w") as f:
             json.dump(pids, f)
-    else:
-        raise Exception("No argument specified")
+
+def main():
+    pids = []
+    if pid_path.exists():
+        pids = json.load(pid_path.open())
+    with pid_path.open("w") as f:
+        pids.append(os.getpid())
+        json.dump(pids, f)
+
+    cli(pids)
+
+    if args.list_gui or args.name_gui:
+        gui()
 
 if __name__ == "__main__":
     try:
