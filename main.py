@@ -35,18 +35,24 @@ active_space = json.loads(active_space)
 
 def get_name(space):
     uuid = space['uuid']
+    display = '' #f"/{space['display']}" if space['display'] != 1 else ''
     if uuid in ws_names:
         name = ws_names[uuid]
         if name == "":
-            r = f"{space['index']}"
+            r = f"{space['index']}{display}"
         else:
-            r = f"{space['index']}: {name}"
+            r = f"{space['index']}{display}: {name}"
     else:
-        r = f"{space['index']}"
+        r = f"{space['index']}{display}"
+
+    if space['display'] != 1:
+        r = f".{r}"
+    else:
+        r = f" {r}"
     if uuid == active_space['uuid']:
-        r = f"* {r}"
+        r = f"*{r}"
     else:
-        r = f"  {r}"
+        r = f" {r}"
     return r
 
 def get_input_name(text_entry):
@@ -64,7 +70,7 @@ for i in range(100):
 def gui():
     win = tkinter.Tk()
     win.overrideredirect(1)
-    win.wm_attributes('-type', 'tooltip')
+    #win.wm_attributes('-type', 'tooltip')
     win.attributes('-topmost', True)
     win.attributes('-alpha', 0.85)
     def center_window(win):
